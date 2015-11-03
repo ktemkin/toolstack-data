@@ -144,7 +144,10 @@ XenClient.UI.Cache = (function() {
                device.refresh();
            }
         }
-        XUtils.publish(XenConstants.TopicTypes.UI_BATTERIES_CHANGED);
+	if(bat_count>-1)
+	{
+           XUtils.publish(XenConstants.TopicTypes.UI_BATTERIES_CHANGED);
+	}
     };
 
     var allVMPaths = function() {
