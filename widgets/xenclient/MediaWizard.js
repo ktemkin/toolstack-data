@@ -126,14 +126,14 @@ return declare("citrix.xenclient.MediaWizard", [_wizard], {
                         // Set wired network
                         if(self._hasWired && result.wiredNetwork != "") {
                             tasksRemaining += 1;
-                            vm.addNetwork(result.wiredNetwork, false, finalizeVM, function(error) {
+                            vm.addNetwork(result.wiredNetwork, false, false, finalizeVM, function(error) {
                                 XUICache.messageBox.showError(error, XenConstants.ToolstackCodes);
                             });
                         }
                         // Set wireless network
                         if(self._hasWireless && result.wirelessNetwork != "") {
                             tasksRemaining += 1;
-                            vm.addNetwork(result.wirelessNetwork, true, finalizeVM, function(error) {
+                            vm.addNetwork(result.wirelessNetwork, true, false, finalizeVM, function(error) {
                                 XUICache.messageBox.showError(error, XenConstants.ToolstackCodes);
                             });
                         }
