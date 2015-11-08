@@ -95,25 +95,49 @@ return declare("citrix.xenclient.MediaWizard", [_wizard], {
 
                 var save = function() {
                     var saveDeferred = new dojo.Deferred();
+
+                    // Keep track of the outstanding asynchronous "tasks" to be completed;
+                    // this ensures we don't autostart a VM until all processing is completed.
+                    var tasksRemaining = 0;
+
+                    // Quick funciton that should run whenever we're finsished
+                    // with a task that may be blocking VM autostart.
+                    var finalizeVM = function() {
+
+                        // If we're not the final task, decrease the task count,
+                        // but don't actually complete the VM's creation, as there
+                        // are outstanding tasks.
+                        if(tasksRemaining > 0) {
+                            tasksRemaining -= 1;
+                            return;
+                        }
+
+                        // If we are the final task, finish up VM completion.
+                        if (result.autoStart != "off") {
+                            vm.start();
+                        }
+                    }
+
                     vm.save(function() {
+                        if(result.vmMode == "single") {
+                            XUICache.Host.set_native_vm(vm.vm_path);
+                        }
+
                         // Set wired network
                         if(self._hasWired && result.wiredNetwork != "") {
-                            vm.addNetwork(result.wiredNetwork, false, function() {}, function(error) {
+                            tasksRemaining += 1;
+                            vm.addNetwork(result.wiredNetwork, false, false, finalizeVM, function(error) {
                                 XUICache.messageBox.showError(error, XenConstants.ToolstackCodes);
                             });
                         }
                         // Set wireless network
                         if(self._hasWireless && result.wirelessNetwork != "") {
-                            vm.addNetwork(result.wirelessNetwork, true, function() {}, function(error) {
+                            tasksRemaining += 1;
+                            vm.addNetwork(result.wirelessNetwork, true, false, finalizeVM, function(error) {
                                 XUICache.messageBox.showError(error, XenConstants.ToolstackCodes);
                             });
                         }
-                        if(result.vmMode == "single") {
-                            XUICache.Host.set_native_vm(vm.vm_path);
-                        }
-                        if (result.autoStart != "off") {
-                            vm.start();
-                        }
+                        finalizeVM();
                         saveDeferred.callback(true);
                     }, saveDeferred.errback);
                     return saveDeferred;
